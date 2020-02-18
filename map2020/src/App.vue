@@ -8,7 +8,7 @@
               <label for="cityName" class="mr-2 col-form-label text-right">縣市</label>
               <div class="flex-fill">
                 <select id="cityName" class="form-control"
-                  v-model="select.city" >
+                  v-model="select.city" @change="removeMapMarker(); uodateMap()">
                   <option value="">-- Select One --</option>
                   <option :value="c.CityName" v-for="c in cityName" :key="c.CityName">
                     {{ c.CityName }}
@@ -79,10 +79,24 @@ export default {
       // L.marker([25.03, 121.55]).addTo(omgMap);
 
       pharmacies.forEach((pharmacy) => {
+        const { properties, geometry } = pharmacy;
         L.marker([
-          pharmacy.geometry.coordinates[1],
-          pharmacy.geometry.coordinates[0],
-        ]).addTo(omgMap);
+          geometry.coordinates[1],
+          geometry.coordinates[0],
+        ]).addTo(omgMap).bindPopup(`<strong>${properties.name}<strong><br>
+        口罩剩餘：<strong>成人 - ${properties.mask_adult ? `${properties.mask_adult} 個` : '未取得資料'} / 兒童 - 
+        ${properties.mask_child ? `${properties.mask_child} 個` : '未取得資料'} <br>
+        電話：${properties}
+        `);
+        console.log(properties);
+      });
+    },
+    // 清除
+    removeMapMarker() {
+      omgMap.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          omgMap.removeLayer(layer);
+        }
       });
     },
   },
@@ -100,7 +114,7 @@ export default {
     // initialize the map on the "omgMap" div with a given center and zoom
     omgMap = L.map('map', {
       center: [25.03, 121.55],
-      zoom: 13,
+      zoom: 16,
     });
     // 導入圖專 TileLayer
     // https://leafletjs.com/reference-1.6.0.html#map-example
